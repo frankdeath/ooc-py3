@@ -65,8 +65,9 @@ class Deck:
     return self.card_dict[s]
 
 def hole2list(h):
-  # Why does this work???
+  # This clones the iterator
   args = [iter(h)] * 2
+  # Zipping the iterator with its clone takes 2-char slices
   return [''.join(x) for x in it.zip_longest(*args)]
   
 def main(args):
