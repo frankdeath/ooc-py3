@@ -51,7 +51,7 @@ class Card:
     self.suit = suit
   
   def __repr__(self):
-    return "{}{}".format(self.rank.__repr__(), self.suit.__repr__())
+    return "<Card: {}>".format(self.__str__())
   
   def __str__(self):
     return "{}{}".format(self.rank.char, self.suit.char)
