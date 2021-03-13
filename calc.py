@@ -106,14 +106,14 @@ def main(args):
   except ValueError:
     print("Error: card specified multiple times")
   else:
-    print(hc)
-    print(bc)
+    #!print(hc)
+    #!print(bc)
     handCombos = product(combinations(hc,2),combinations(bc,3))
     i = 0
     for h, b in handCombos:
       print(h+b)
       i += 1
-    print(i)
+    #!print(i)
 
 if __name__ == '__main__':
   import argparse as ap
