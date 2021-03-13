@@ -189,7 +189,7 @@ class Hand:
     
     # If the 2nd highest card in a straight flush is a King ==> Royal!
     if straight and flush:
-      if hs[1].rank == Rank.KING:
+      if self.sCards[1].rank == Rank.KING:
         hr = HandRank.ROYAL_FLUSH
       else:
         hr = HandRank.STRAIGHT_FLUSH
