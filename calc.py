@@ -253,12 +253,14 @@ def cardsToList(h):
   # Zipping the iterator with its clone takes 2-char slices
   return [''.join(x) for x in zip_longest(*args)]
 
-def printTurnStats(total, tc):
+def printTurnStats(tc):
+  total = sum(tc)
+  
   print("TURN")
   print()
-  
   header = "{:<16}{:<16}{:<16}{:<16}{:<16}".format("Hand", "out of {}".format(total), "Odds 1:", "Probability", "# Better")
   print(header)
+  
   for r in sorted(HandRank, reverse=True):
     if tc[r] != 0:
       odds = total / tc[r] - 1.0
@@ -285,17 +287,15 @@ def main(args):
     
     if args.turn == None:
       # calc turn stats
-      total = len(d)
-      
       tc = Counter({r : 0 for r in HandRank})
       
       for turn in d.deck:
         th = OmahaHand(hc, bc+[turn,])
         tc[th.rank] += 1
         #th.debugPrint()
-        
+      
       #!print(tc)
-      printTurnStats(total, tc)
+      printTurnStats(tc)
       
       # calc river stats
       
