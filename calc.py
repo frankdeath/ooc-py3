@@ -83,8 +83,13 @@ class Deck:
     self.deck = [Card(r, s) for (r, s) in it.product(Rank, Suit)]
     self.card_dict = {c.__str__():c for c in self.deck}
   
-  def getCard(self, s):
+  def lookupCard(self, s):
     return self.card_dict[s]
+  
+  def takeCard(self, s):
+    card = self.card_dict[s]
+    self.deck.remove(card)
+    return card
 
 def cardsToList(h):
   # This clones the iterator
@@ -94,7 +99,7 @@ def cardsToList(h):
   
 def main(args):
   d = Deck()
-  hc = [d.getCard(c) for c in cardsToList(args.hole_cards)]
+  hc = [d.takeCard(c) for c in cardsToList(args.hole_cards)]
   print(hc)
   
 if __name__ == '__main__':
