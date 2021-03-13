@@ -306,7 +306,25 @@ def main(args):
       
       #print(rc)
       printStats(rc, "RIVER")
+    
+    elif args.river == None:
+      ### calc river stats
+      rc = Counter({r : 0 for r in HandRank})
       
+      for river in d.deck:
+        rh = OmahaHand(hc, bc+[river,])
+        rc[rh.rank] += 1
+      
+      #print(rc)
+      printStats(rc, "RIVER")
+    
+    else:
+      ### calc showdown stats
+      sc = Counter({r : 0 for r in HandRank})
+      sc[oh.rank] += 1
+      
+      printStats(sc, "SHOWDOWN")
+    
     # When calculating better hands...
     #for bc in d.deck:
     #  print(bc)
