@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import enum
-from itertools import product, combinations, zip_longest
+from itertools import product, combinations, zip_longest, groupby
+from functools import total_ordering
 
 class HandRank(enum.IntEnum):
   def __new__(cls, string):
@@ -67,10 +68,17 @@ class Suit(enum.IntEnum):
 #for s in Suit:
 #  print(s, s.name, s.value, s.char)
 
+@total_ordering
 class Card:
   def __init__(self, rank, suit):
     self.rank = rank
     self.suit = suit
+  
+  def __gt__(self, other):
+    return (self.rank, self.suit) > (other.rank, other.suit)
+  
+  def __eq__(self, other):
+    return (self.rank, self.suit) == (other.rank, other.suit)
   
   def __repr__(self):
     return "<Card: {}>".format(self.__str__())
@@ -96,7 +104,84 @@ def cardsToList(h):
   args = [iter(h)] * 2
   # Zipping the iterator with its clone takes 2-char slices
   return [''.join(x) for x in zip_longest(*args)]
+
+def suitCheck(h):
+  '''
+  Returns True if all cards have same suit, False otherwise
+  '''
+  flush = True
+  lastSuit = None
+  for c in h:
+    if lastSuit == None:
+      lastSuit = c.suit
+      continue
+    else:
+      if c.suit != lastSuit:
+        # Can't have a flush
+        flush = False
+        break
+  return flush
+
+def handEval(h):
+  #
+  hs = sorted(h, reverse=True)
+  #!print(hs)
   
+  # Group the cards by rank and count how many of each there are
+  # Note: this works because the hand is sorted by rank
+  rankList = sorted([(len([*g]), k) for k, g in groupby(hs, lambda x : x.rank)], reverse=True)
+  #!print(rankList)
+  numRanks = len(rankList)
+  
+  # A straight is possible if there are 5 ranks and...
+  # (the highest and lowest cards are 4 apart or ...
+  #  the highest and 2nd highest cards are 9 apart, which can only happen with A & 5)
+  if (numRanks == 5) and ((hs[0].rank - hs[4].rank == 4) or (hs[0].rank - hs[1].rank == 9)):
+    straight = True
+  else:
+    straight = False
+  #!print("Straight = {}".format(straight))
+  
+  # A flush is only possible if every suit is the same as the previous one
+  flush = suitCheck(hs)
+  #!print("Flush = {}".format(flush))
+  
+  # This step wouldn't be necessary if the k were _ when creating RankList
+  multi = [x[0] for x in rankList]
+  # [4, 1] = four of a kind
+  # [3, 2] = full house
+  # [3, 1, 1] = three of a kind
+  # [2, 2, 1] = two pair
+  # [2, 1, 1, 1] = one pair
+  # [1, 1, 1, 1, 1] = high card
+  #!print(multi)
+  
+  # If the 2nd highest card in a straight flush is a King ==> Royal!
+  if straight and flush:
+    if hs[1].rank == Rank.KING:
+      hr = HandRank.ROYAL_FLUSH
+    else:
+      hr = HandRank.STRAIGHT_FLUSH
+  elif multi == [4, 1]:
+    hr = HandRank.FOUR_OF_A_KIND
+  elif multi == [3, 2]:
+    hr = HandRank.FULL_HOUSE
+  elif flush:
+    hr = HandRank.FLUSH
+  elif straight:
+    hr = HandRank.STRAIGHT
+  elif multi == [3, 1, 1]:
+    hr = HandRank.THREE_OF_A_KIND
+  elif multi == [2, 2, 1]:
+    hr = HandRank.TWO_PAIR
+  elif multi == [2, 1, 1, 1]:
+    hr = HandRank.ONE_PAIR
+  else:
+    hr = HandRank.HIGH_CARD
+  #!print(hr)
+  #!print()
+  return hr
+
 def main(args):
   try:
     d = Deck()
@@ -110,10 +195,18 @@ def main(args):
     #!print(bc)
     handCombos = product(combinations(hc,2),combinations(bc,3))
     i = 0
+    bestHandRank = HandRank.HIGH_CARD
+    bestHand = None
     for h, b in handCombos:
-      print(h+b)
+      #!print(h+b)
+      hr = handEval(h+b)
+      if hr > bestHandRank:
+        bestHandRank = hr
+        bestHand = h + b
       i += 1
     #!print(i)
+    print(bestHand)
+    print(bestHandRank)
 
 if __name__ == '__main__':
   import argparse as ap
@@ -130,3 +223,6 @@ if __name__ == '__main__':
   
   #print(args)
   main(args)
+  
+  # Ad7dAs4d 4sAhAc
+  
