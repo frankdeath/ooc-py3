@@ -258,7 +258,9 @@ if __name__ == '__main__':
   parser = ap.ArgumentParser("calc.py")
   
   parser.add_argument("hole_cards", action="store")
-  parser.add_argument("flop", nargs='?', action="store")
+  #parser.add_argument("flop", nargs='?', action="store")
+  # Require flop until hutchison point calc is implemented
+  parser.add_argument("flop", action="store")
   parser.add_argument("turn", nargs='?', action="store")
   parser.add_argument("river", nargs='?', action="store")
   
