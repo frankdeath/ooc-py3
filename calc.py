@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import enum
-from itertools import product, combinations, zip_longest, groupby
+from collections import Counter
+from itertools import product, combinations, zip_longest, groupby, filterfalse
 from functools import total_ordering
 
 class HandRank(enum.IntEnum):
@@ -13,13 +14,13 @@ class HandRank(enum.IntEnum):
     return member
   
   HIGH_CARD       = 'High Card'
-  ONE_PAIR        = '1 Pair'
-  TWO_PAIR        = '2 Pair'
-  THREE_OF_A_KIND = '3 of a Kind'
+  ONE_PAIR        = 'One Pair'
+  TWO_PAIR        = 'Two Pair'
+  THREE_OF_A_KIND = 'Three of a Kind'
   STRAIGHT        = 'Straight'
   FLUSH           = 'Flush'
   FULL_HOUSE      = 'Full House'
-  FOUR_OF_A_KIND  = '4 of a Kind'
+  FOUR_OF_A_KIND  = 'Four of a Kind'
   STRAIGHT_FLUSH  = 'Straight Flush'
   ROYAL_FLUSH     = 'Royal Flush'
 
@@ -90,6 +91,9 @@ class Deck:
   def __init__(self):
     self.deck = [Card(r, s) for (r, s) in product(Rank, Suit)]
     self.card_dict = {c.__str__():c for c in self.deck}
+  
+  def __len__(self):
+    return(len(self.deck))
   
   def lookupCard(self, s):
     return self.card_dict[s]
@@ -209,6 +213,7 @@ class Hand:
     
     return hr
 
+@total_ordering
 class OmahaHand:
   '''
   '''
@@ -220,15 +225,27 @@ class OmahaHand:
     self.handList = [Hand(*(h+b)) for h, b in self.hCombos]
     self.rank, self.bestHand, self.bestHandIdx = max([(x.rank, x, i) for (i, x) in enumerate(self.handList)])
   
+  def __gt__(self, other):
+    return self.bestHand.__gt__(other.bestHand)
+  
+  def __eq__(self, other):
+    return self.bestHand.__eq__(other.bestHand)
+  
   def debugPrint(self):
+    print()
     print("{} | {} - {}".format(Hand.to_string(self.hand), Hand.to_string(self.board), self.bestHand.rank.string))
     print()
-    for i, h in enumerate(self.handList):
-      if i == self.bestHandIdx:
-        print("{} *".format(h))
-      else:
-        #print(h)
-        pass
+    #for i, h in enumerate(self.handList):
+    #  if i == self.bestHandIdx:
+    #    print("{} *".format(h))
+    #  else:
+    #    #print(h)
+    #    pass
+
+  
+
+
+
 
 def cardsToList(h):
   # This clones the iterator
@@ -250,6 +267,38 @@ def main(args):
     
     oh = OmahaHand(hc, bc)
     oh.debugPrint()
+    
+    if args.turn == None:
+      # calc turn & river stats
+      #oh.calcTurnStats()
+      total = len(d)
+      
+      tc = Counter({r : 0 for r in HandRank})
+      
+      for turn in d.deck:
+        th = OmahaHand(hc, bc+[turn,])
+        tc[th.rank] += 1
+        #th.debugPrint()
+        
+      #!print(tc)
+      print("TURN")
+      print()
+      
+      header = "{:<16}{:<16}{:<16}{:<16}{:<16}".format("Hand", "out of {}".format(total), "Odds 1:", "Probability", "# Better")
+      print(header)
+      for r in sorted(HandRank, reverse=True):
+        if tc[r] != 0:
+          odds = total / tc[r] - 1.0
+        else:
+          odds = 0.0
+        percent = tc[r] / total * 100.0
+        print("{:<16}{:<16}{:<16.2f}{:<16.2f}".format(r.string, tc[r], odds, percent))
+    
+    # When calculating better hands...
+    #for bc in d.deck:
+    #  print(bc)
+    #  print(*filterfalse(lambda x : x == bc, d.deck))
+
 
 if __name__ == '__main__':
   import argparse as ap
