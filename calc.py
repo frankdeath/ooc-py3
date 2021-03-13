@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import enum
-import itertools as it
+from itertools import product, combinations, zip_longest
 
 class HandRank(enum.IntEnum):
   def __new__(cls, string):
@@ -80,7 +80,7 @@ class Card:
 
 class Deck:
   def __init__(self):
-    self.deck = [Card(r, s) for (r, s) in it.product(Rank, Suit)]
+    self.deck = [Card(r, s) for (r, s) in product(Rank, Suit)]
     self.card_dict = {c.__str__():c for c in self.deck}
   
   def lookupCard(self, s):
@@ -95,13 +95,26 @@ def cardsToList(h):
   # This clones the iterator
   args = [iter(h)] * 2
   # Zipping the iterator with its clone takes 2-char slices
-  return [''.join(x) for x in it.zip_longest(*args)]
+  return [''.join(x) for x in zip_longest(*args)]
   
 def main(args):
-  d = Deck()
-  hc = [d.takeCard(c) for c in cardsToList(args.hole_cards)]
-  print(hc)
-  
+  try:
+    d = Deck()
+    hc = [d.takeCard(c) for c in cardsToList(args.hole_cards)]
+    bcs = "".join([x for x in (args.flop, args.turn, args.river) if x != None])
+    bc = [d.takeCard(c) for c in cardsToList(bcs)]
+  except ValueError:
+    print("Error: card specified multiple times")
+  else:
+    print(hc)
+    print(bc)
+    handCombos = product(combinations(hc,2),combinations(bc,3))
+    i = 0
+    for h, b in handCombos:
+      print(h+b)
+      i += 1
+    print(i)
+
 if __name__ == '__main__':
   import argparse as ap
   import sys
