@@ -12,16 +12,16 @@ class HandRank(enum.IntEnum):
     member.string = string
     return member
   
-  HIGH_CARD       = 'high card'
-  ONE_PAIR        = '1 pair'
-  TWO_PAIR        = '2 pair'
-  THREE_OF_A_KIND = '3 of a kind'
-  STRAIGHT        = 'straight'
-  FLUSH           = 'flush'
-  FULL_HOUSE      = 'full house'
-  FOUR_OF_A_KIND  = '4 of a kind'
-  STRAIGHT_FLUSH  = 'straight flush'
-  ROYAL_FLUSH     = 'royal flush'
+  HIGH_CARD       = 'High Card'
+  ONE_PAIR        = '1 Pair'
+  TWO_PAIR        = '2 Pair'
+  THREE_OF_A_KIND = '3 of a Kind'
+  STRAIGHT        = 'Straight'
+  FLUSH           = 'Flush'
+  FULL_HOUSE      = 'Full House'
+  FOUR_OF_A_KIND  = '4 of a Kind'
+  STRAIGHT_FLUSH  = 'Straight Flush'
+  ROYAL_FLUSH     = 'Royal Flush'
 
 #for hr in HandRank:
 #  print(hr, hr.name, hr.value, hr.string)
