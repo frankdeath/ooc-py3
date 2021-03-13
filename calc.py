@@ -253,6 +253,21 @@ def cardsToList(h):
   # Zipping the iterator with its clone takes 2-char slices
   return [''.join(x) for x in zip_longest(*args)]
 
+def printTurnStats(total, tc):
+  print("TURN")
+  print()
+  
+  header = "{:<16}{:<16}{:<16}{:<16}{:<16}".format("Hand", "out of {}".format(total), "Odds 1:", "Probability", "# Better")
+  print(header)
+  for r in sorted(HandRank, reverse=True):
+    if tc[r] != 0:
+      odds = total / tc[r] - 1.0
+    else:
+      odds = 0.0
+    percent = tc[r] / total * 100.0
+    print("{:<16}{:<16}{:<16.2f}{:<16.2f}".format(r.string, tc[r], odds, percent))
+
+
 def main(args):
   try:
     d = Deck()
@@ -269,8 +284,7 @@ def main(args):
     oh.debugPrint()
     
     if args.turn == None:
-      # calc turn & river stats
-      #oh.calcTurnStats()
+      # calc turn stats
       total = len(d)
       
       tc = Counter({r : 0 for r in HandRank})
@@ -281,19 +295,12 @@ def main(args):
         #th.debugPrint()
         
       #!print(tc)
-      print("TURN")
-      print()
+      printTurnStats(total, tc)
       
-      header = "{:<16}{:<16}{:<16}{:<16}{:<16}".format("Hand", "out of {}".format(total), "Odds 1:", "Probability", "# Better")
-      print(header)
-      for r in sorted(HandRank, reverse=True):
-        if tc[r] != 0:
-          odds = total / tc[r] - 1.0
-        else:
-          odds = 0.0
-        percent = tc[r] / total * 100.0
-        print("{:<16}{:<16}{:<16.2f}{:<16.2f}".format(r.string, tc[r], odds, percent))
-    
+      # calc river stats
+      
+      
+      
     # When calculating better hands...
     #for bc in d.deck:
     #  print(bc)
