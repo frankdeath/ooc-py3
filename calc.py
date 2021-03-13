@@ -3,6 +3,28 @@
 import enum
 import itertools as it
 
+class HandRank(enum.IntEnum):
+  def __new__(cls, string):
+    value = len(cls.__members__)
+    member = int.__new__(cls, value)
+    member._value_ = value
+    member.string = string
+    return member
+  
+  HIGH_CARD       = 'high card'
+  ONE_PAIR        = '1 pair'
+  TWO_PAIR        = '2 pair'
+  THREE_OF_A_KIND = '3 of a kind'
+  STRAIGHT        = 'straight'
+  FLUSH           = 'flush'
+  FULL_HOUSE      = 'full house'
+  FOUR_OF_A_KIND  = '4 of a kind'
+  STRAIGHT_FLUSH  = 'straight flush'
+  ROYAL_FLUSH     = 'royal flush'
+
+#for hr in HandRank:
+#  print(hr, hr.name, hr.value, hr.string)
+
 class Rank(enum.IntEnum):
   def __new__(cls, char):
     value = len(cls.__members__) + 1
@@ -64,7 +86,7 @@ class Deck:
   def getCard(self, s):
     return self.card_dict[s]
 
-def hole2list(h):
+def cardsToList(h):
   # This clones the iterator
   args = [iter(h)] * 2
   # Zipping the iterator with its clone takes 2-char slices
@@ -72,7 +94,7 @@ def hole2list(h):
   
 def main(args):
   d = Deck()
-  hc = [d.getCard(c) for c in hole2list(args.hole_cards)]
+  hc = [d.getCard(c) for c in cardsToList(args.hole_cards)]
   print(hc)
   
 if __name__ == '__main__':
