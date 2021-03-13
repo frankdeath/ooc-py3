@@ -109,6 +109,7 @@ class Hand:
   A five-card poker hand
   '''
   def __init__(self, *cards):
+    #!print(cards)
     self.cards = cards
     self.sCards = sorted(cards, reverse=True)
     self.rank = self._handEval()
@@ -241,24 +242,37 @@ class OmahaHand:
     #  else:
     #    #print(h)
     #    pass
-
   
-
-
-
-
+  
 def cardsToList(h):
   # This clones the iterator
   args = [iter(h)] * 2
   # Zipping the iterator with its clone takes 2-char slices
   return [''.join(x) for x in zip_longest(*args)]
 
-def printStats(ctr, name):
+def countBetterHands(oh, deck):
+  '''
+  Enumerate the number of 5-hard hands that can be made with the
+  existing board that are better than the given hand.  Assume that
+  deck already has oh.hand removed to avoid recreating deck.
+  '''
+  bhc = Counter({r : 0 for r in HandRank})
+  total = 0
+  
+  for h1, h2 in combinations(deck, 2):
+    h = OmahaHand([h1, h2], oh.board)
+    if h > oh:
+      bhc[h.rank] += 1
+    total += 1
+  
+  return (bhc, total)
+    
+def printStats(name, ctr, bhc, bht):
   total = sum(ctr.values())
   
   print(name)
   print()
-  header = "{:<16}{:<16}{:<16}{:<16}{:<16}".format("Hand", "out of {}".format(total), "Odds 1:", "Probability", "# Better")
+  header = "{:<16}{:<16}{:<16}{:<16}{:<16}".format("Hand", "out of {}".format(total), "Odds 1:", "Probability", "# Better / {}".format(bht))
   print(header)
   
   for r in sorted(HandRank, reverse=True):
@@ -267,7 +281,7 @@ def printStats(ctr, name):
     else:
       odds = 0.0
     percent = ctr[r] / total * 100.0
-    print("{:<16}{:<16}{:<16.2f}{:<16.2f}".format(r.string, ctr[r], odds, percent))
+    print("{:<16}{:<16}{:<16.2f}{:<16.2f}{:<16}".format(r.string, ctr[r], odds, percent, bhc[r]))
   print()
 
 def main(args):
@@ -283,6 +297,8 @@ def main(args):
     #!print(bc)
     
     oh = OmahaHand(hc, bc)
+    bhc, bht = countBetterHands(oh, d.deck)
+    #!print(bhc)
     oh.debugPrint()
     
     if args.turn == None:
@@ -302,10 +318,10 @@ def main(args):
         rc[rh.rank] += 1
       
       #!print(tc)
-      printStats(tc, "TURN")
+      printStats("TURN", tc, bhc, bht)
       
       #print(rc)
-      printStats(rc, "RIVER")
+      printStats("RIVER", rc, bhc, bht)
     
     elif args.river == None:
       ### calc river stats
@@ -316,14 +332,14 @@ def main(args):
         rc[rh.rank] += 1
       
       #print(rc)
-      printStats(rc, "RIVER")
+      printStats("RIVER", rc, bhc, bht)
     
     else:
       ### calc showdown stats
       sc = Counter({r : 0 for r in HandRank})
       sc[oh.rank] += 1
       
-      printStats(sc, "SHOWDOWN")
+      printStats("SHOWDOWN", sc, bhc, bht)
     
     # When calculating better hands...
     #for bc in d.deck:
