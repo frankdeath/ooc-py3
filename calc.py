@@ -159,23 +159,20 @@ class Hand:
 
   def _handEval(self):
     # Group the cards by rank and count how many of each there are
-    # Note: this works because the hand is sorted by rank
+    # NOTE: this works because the hand is sorted by rank
     self.rankList = sorted([(len([*g]), k) for k, g in groupby(self.sCards, lambda x : x.rank)], reverse=True)
-    #!print(rankList)
     numRanks = len(self.rankList)
     
     # A straight is possible if there are 5 ranks and...
-    # (the highest and lowest cards are 4 apart or ...
+    # (the highest and lowest cards are 4 apart--a normal straight--or ...
     #  the highest and 2nd highest cards are 9 apart, which can only happen with A & 5)
     if (numRanks == 5) and ((self.sCards[0].rank - self.sCards[4].rank == 4) or (self.sCards[0].rank - self.sCards[1].rank == 9)):
       straight = True
     else:
       straight = False
-    #!print("Straight = {}".format(straight))
     
     # A flush is only possible if every suit is the same as the previous one
     flush = self._flushCheck()
-    #!print("Flush = {}".format(flush))
     
     # This step wouldn't be necessary if the k were _ when creating RankList
     multi = [x[0] for x in self.rankList]
@@ -185,7 +182,6 @@ class Hand:
     # [2, 2, 1] = two pair
     # [2, 1, 1, 1] = one pair
     # [1, 1, 1, 1, 1] = high card
-    #!print(multi)
     
     # If the 2nd highest card in a straight flush is a King ==> Royal!
     if straight and flush:
@@ -209,8 +205,6 @@ class Hand:
       hr = HandRank.ONE_PAIR
     else:
       hr = HandRank.HIGH_CARD
-    #!print(hr)
-    #!print()
     
     return hr
 
@@ -304,7 +298,6 @@ def main(args):
       for turn in d.deck:
         th = OmahaHand(hc, bc+[turn,])
         tc[th.rank] += 1
-        #th.debugPrint()
       
       ### calc river stats
       rc = Counter({r : 0 for r in HandRank})
