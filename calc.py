@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import enum
+from enum import IntEnum
 from collections import Counter
 from itertools import product, combinations, zip_longest, groupby, filterfalse
 from functools import total_ordering
 
-class HandRank(enum.IntEnum):
+class HandRank(IntEnum):
   def __new__(cls, string):
     value = len(cls.__members__)
     member = int.__new__(cls, value)
@@ -27,7 +27,7 @@ class HandRank(enum.IntEnum):
 #for hr in HandRank:
 #  print(hr, hr.name, hr.value, hr.string)
 
-class Rank(enum.IntEnum):
+class Rank(IntEnum):
   def __new__(cls, char):
     value = len(cls.__members__) + 1
     member = int.__new__(cls, value)
@@ -52,7 +52,7 @@ class Rank(enum.IntEnum):
 #for r in Rank:
 #  print(r, r.name, r.value, r.char)
 
-class Suit(enum.IntEnum):
+class Suit(IntEnum):
   def __new__(cls, char):
     value = len(cls.__members__) + 1
     member = int.__new__(cls, value)
