@@ -270,7 +270,7 @@ def cardsToList(h):
   # Zipping the iterator with its clone takes 2-char slices
   return [''.join(x) for x in zip_longest(*args)]
 
-def countBetterHands(oh, deck):
+def countBetterHands(oh, deck, saveHands):
   '''
   Enumerate the number of 5-hard hands that can be made with the
   existing board that are better than the given hand.  Assume that
@@ -278,14 +278,17 @@ def countBetterHands(oh, deck):
   '''
   bhc = Counter({r : 0 for r in HandRank})
   total = 0
+  handList = []
   
   for h1, h2 in combinations(deck, 2):
     h = OmahaHand([h1, h2], oh.board)
     if h > oh:
       bhc[h.rank] += 1
+      if saveHands:
+        handList.append(h)
     total += 1
   
-  return (bhc, total)
+  return (bhc, total, sorted(handList, reverse=True))
     
 def printStats(name, ctr, bhc, bht):
   total = sum(ctr.values())
@@ -314,7 +317,7 @@ def main(args):
     print("Error: card specified multiple times")
   else:
     oh = OmahaHand(hc, bc)
-    bhc, bht = countBetterHands(oh, d.deck)
+    bhc, bht, bhl = countBetterHands(oh, d.deck, saveHands=args.better_hands)
     oh.debugPrint()
     
     if args.turn == None:
@@ -352,6 +355,15 @@ def main(args):
       
       printStats("SHOWDOWN", sc, bhc, bht)
     
+    if args.better_hands:
+      print("BETTER HANDS")
+      print()
+      print("{:>3}   {:<20}".format("#", "HAND"))
+      
+      for n, h in [(len([*g]), k) for k, g in groupby(bhl, lambda x : x.bestHand.name)]:
+        print("{:>3} | {:<20}".format(n, h))
+      print("{:>3}   {:<20}".format(sum(bhc.values()), "TOTAL"))
+    
     # When calculating better hands...
     #for bc in d.deck:
     #  print(bc)
@@ -369,6 +381,7 @@ if __name__ == '__main__':
   parser.add_argument("flop", action="store")
   parser.add_argument("turn", nargs='?', action="store")
   parser.add_argument("river", nargs='?', action="store")
+  parser.add_argument("-b", action="store_true", dest="better_hands", help="Show better hands")
   
   args = parser.parse_args(sys.argv[1:])
   
