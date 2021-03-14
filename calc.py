@@ -293,12 +293,8 @@ def main(args):
   except ValueError:
     print("Error: card specified multiple times")
   else:
-    #!print(hc)
-    #!print(bc)
-    
     oh = OmahaHand(hc, bc)
     bhc, bht = countBetterHands(oh, d.deck)
-    #!print(bhc)
     oh.debugPrint()
     
     if args.turn == None:
@@ -317,10 +313,7 @@ def main(args):
         rh = OmahaHand(hc, bc+[turn, river])
         rc[rh.rank] += 1
       
-      #!print(tc)
       printStats("TURN", tc, bhc, bht)
-      
-      #print(rc)
       printStats("RIVER", rc, bhc, bht)
     
     elif args.river == None:
@@ -331,7 +324,6 @@ def main(args):
         rh = OmahaHand(hc, bc+[river,])
         rc[rh.rank] += 1
       
-      #print(rc)
       printStats("RIVER", rc, bhc, bht)
     
     else:
@@ -362,8 +354,5 @@ if __name__ == '__main__':
   
   args = parser.parse_args(sys.argv[1:])
   
-  #print(args)
   main(args)
-  
-  # Ad7dAs4d 4sAhAc
   
