@@ -112,7 +112,7 @@ class Hand:
     #!print(cards)
     self.cards = cards
     self.sCards = sorted(cards, reverse=True)
-    self.rank = self._handEval()
+    self.rank, self.name = self._handEval()
 
   def __gt__(self, other):
     if self.rank == other.rank:
@@ -158,18 +158,25 @@ class Hand:
     return flush
 
   def _handEval(self):
-    # Group the cards by rank and count how many of each there are
+    # Group the cards by rank and count how many of each there are. [(#, Rank), ...]
     # NOTE: this works because the hand is sorted by rank
     self.rankList = sorted([(len([*g]), k) for k, g in groupby(self.sCards, lambda x : x.rank)], reverse=True)
+    highestRank = self.rankList[0][1]
+    secondHighestRank = self.rankList[1][1]
     numRanks = len(self.rankList)
     
+    # Assume there isn't a straight (wheel = A2345)
+    straight = wheel = False
+    #wheel = False
     # A straight is possible if there are 5 ranks and...
     # (the highest and lowest cards are 4 apart--a normal straight--or ...
     #  the highest and 2nd highest cards are 9 apart, which can only happen with A & 5)
-    if (numRanks == 5) and ((self.sCards[0].rank - self.sCards[4].rank == 4) or (self.sCards[0].rank - self.sCards[1].rank == 9)):
-      straight = True
-    else:
-      straight = False
+    if (numRanks == 5):
+      if (self.sCards[0].rank - self.sCards[4].rank == 4):
+        straight = True
+      if (self.sCards[0].rank - self.sCards[1].rank == 9):
+        straight = True
+        wheel = True
     
     # A flush is only possible if every suit is the same as the previous one
     flush = self._flushCheck()
@@ -181,32 +188,48 @@ class Hand:
     # [3, 1, 1] = three of a kind
     # [2, 2, 1] = two pair
     # [2, 1, 1, 1] = one pair
-    # [1, 1, 1, 1, 1] = high card
+    # [1, 1, 1, 1, 1] = high card (also straight / flush / straight flush)
     
     # If the 2nd highest card in a straight flush is a King ==> Royal!
     if straight and flush:
       if self.sCards[1].rank == Rank.KING:
         hr = HandRank.ROYAL_FLUSH
+        hn = hr.string
       else:
         hr = HandRank.STRAIGHT_FLUSH
+        if wheel:
+          hn = "{}-high {}".format(secondHighestRank.char, hr.string)
+        else:
+          hn = "{}-high {}".format(highestRank.char, hr.string)
     elif multi == [4, 1]:
       hr = HandRank.FOUR_OF_A_KIND
+      hn = "Four {}'s".format(highestRank.char)
     elif multi == [3, 2]:
       hr = HandRank.FULL_HOUSE
+      hn = "{}'s over {}'s".format(highestRank.char, secondHighestRank.char)
     elif flush:
       hr = HandRank.FLUSH
+      hn = "{}-high {}".format(highestRank.char, hr.string)
     elif straight:
       hr = HandRank.STRAIGHT
+      if wheel:
+        hn = "{}-high {}".format(secondHighestRank.char, hr.string)
+      else:
+        hn = "{}-high {}".format(highestRank.char, hr.string)
     elif multi == [3, 1, 1]:
       hr = HandRank.THREE_OF_A_KIND
+      hn = "Three {}'s".format(highestRank.char)
     elif multi == [2, 2, 1]:
       hr = HandRank.TWO_PAIR
+      hn = "{}'s and {}'s".format(highestRank.char, secondHighestRank.char)
     elif multi == [2, 1, 1, 1]:
       hr = HandRank.ONE_PAIR
+      hn = "Pair of {}'s".format(highestRank.char)
     else:
       hr = HandRank.HIGH_CARD
+      hn = "{}-high".format(highestRank.char)
     
-    return hr
+    return (hr, hn)
 
 @total_ordering
 class OmahaHand:
@@ -228,7 +251,10 @@ class OmahaHand:
   
   def debugPrint(self):
     print()
-    print("{} | {} - {}".format(Hand.to_string(self.hand), Hand.to_string(self.board), self.bestHand.rank.string))
+    if self.bestHand.rank == HandRank.ROYAL_FLUSH:
+      print("{} | {} - {}".format(Hand.to_string(self.hand), Hand.to_string(self.board), self.bestHand.rank.string))
+    else:
+      print("{} | {} - {}: {}".format(Hand.to_string(self.hand), Hand.to_string(self.board), self.bestHand.rank.string ,self.bestHand.name))
     print()
     #for i, h in enumerate(self.handList):
     #  if i == self.bestHandIdx:
@@ -330,7 +356,6 @@ def main(args):
     #for bc in d.deck:
     #  print(bc)
     #  print(*filterfalse(lambda x : x == bc, d.deck))
-
 
 if __name__ == '__main__':
   import argparse as ap
