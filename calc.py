@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from enum import IntEnum
-from collections import Counter
+from collections import Counter, deque
 from itertools import product, combinations, zip_longest, groupby, filterfalse
 from functools import total_ordering
 
@@ -312,42 +312,119 @@ def hutchison(hole):
   hr = sorted(hole, reverse=True)
   # rankGroups element: ( # of rank, rank )
   rankGroups = [(len([*g]),k) for k, g in groupby(hr, lambda x: x.rank)]
-  print(rankGroups)
+  #!print(rankGroups)
   numRanks = len(rankGroups)
+  #!print(f'{numRanks = }')
   hs = sorted(hole, reverse=True, key=lambda y: (y.suit, y.rank))
   # suitGroups element: ( [ list of ranks ], suit )
   suitGroups = [([c.rank for c in g], k) for k, g in groupby(hs, lambda z: z.suit)]
-  print(suitGroups)
+  #!print(suitGroups)
   score = 0
   
   # Phase 1 - Contribution from suited cards
   bonus1 = {Rank.ACE : 8, Rank.KING : 6, Rank.QUEEN : 5, Rank.JACK : 4, Rank.TEN : 3, Rank.NINE : 3, Rank.EIGHT : 2,
             Rank.SEVEN : 1, Rank.SIX : 1, Rank.FIVE : 1, Rank.FOUR : 1, Rank.THREE : 1, Rank.TWO : 1}
-  penalty1 = 2
+  penalty1 = -2
+  phase1 = 0
+  
   for s in suitGroups:
     # If there are at least two cards with the same suit
     if len(s[0]) > 1:
       # The bonus is based on the highest rank
-      score += bonus1[s[0][0]]
+      phase1 += bonus1[s[0][0]]
       
       # There is a penalty for more than two cards of the same suit (only applies once)
       if len(s[0]) > 2:
-        score -= penalty1
+        phase1 += penalty1
+  
+  #!print(f'{phase1 = }')
+  score += phase1
   
   # Phase 2 - Contribution from pairs
   bonus2 = {Rank.ACE : 18, Rank.KING : 16, Rank.QUEEN : 14, Rank.JACK : 13, Rank.TEN : 12, Rank.NINE : 10, Rank.EIGHT : 8,
             Rank.SEVEN : 7, Rank.SIX : 7, Rank.FIVE : 7, Rank.FOUR : 7, Rank.THREE : 7, Rank.TWO : 7}
+  phase2 = 0
+  
   for r in rankGroups:
     # Bonuses only apply to pairs
     if r[0] == 2:
-      score += bonus2[r[1]]
+      phase2 += bonus2[r[1]]
+  
+  #!print(f'{phase2 = }')
+  score += phase2
   
   # Phase 3 - Contribution from straight cards
   bonus3 = {4 : 25, 3 : 18, 2 : 8}
+  gapPenalty = -2
+  acePenalty = -4
+  aceLowBonus = {1 : 6, 2 : 12}
+  phase3 = 0
   
+  # Helper function from stack overflow
+  def _nwise_slice(it, n):
+      deq = deque((), n)
+      for x in it:
+          deq.append(x)
+          if len(deq)==n: yield deq
   
-  print(score)
-
+  # Recursive function that does all the phase-3 work
+  def _calcStraightBonus(_rankGroupList):
+    '''
+    A recursive function that checks whether groups of cards can make straights, using smaller groups with each level of recursion.
+    '''
+    _points = 0
+    _numRanks = len(_rankGroupList)
+    #!print(f'Start: {_numRanks = } {_rankGroupList = }')
+    if _numRanks > 1:
+      _maxRankDiff = _rankGroupList[0][1] - _rankGroupList[-1][1]
+      if _maxRankDiff < 5: 
+        # _numRanks cards can make a straight
+        # _gaps = _maxRankDiff - 1 - (_numRanks - 2)
+        _gaps = _maxRankDiff - _numRanks + 1
+        _points += bonus3[_numRanks] + (_gaps * gapPenalty)
+        
+        if _rankGroupList[0][1] == Rank.ACE:
+          _points += acePenalty
+        
+      else:
+        # See if (_numRanks-1) slices can make a straight
+        for _rankGroupSlice in _nwise_slice(_rankGroupList, _numRanks-1):
+          #!print(f'Recursing: {_rankGroupSlice = }')
+          _points += _calcStraightBonus(_rankGroupSlice)
+    #!print(f'Done: {_numRanks = }, {_points = }')
+    return _points
+  
+  def _calcAceModifier(_rankGroupList):
+    '''
+    '''  
+  
+  # Hands with Aces are special
+  if rankGroups[0][1] == Rank.ACE:
+    # Count how many low cards there are
+    numLow = [x[1] < Rank.SIX for x in rankGroups].count(True)
+    
+    if numLow == 3:
+      # Ace + 3 low cards
+      phase3 += aceLowBonus[2]
+    elif numLow == 2:
+      # Ace + 2 low cards
+      phase3 += aceLowBonus[2]
+      phase3 += _calcStraightBonus(rankGroups[:-numLow])
+    elif numLow == 1:
+      # Ace + 1 low card
+      phase3 += aceLowBonus[1]
+      phase3 += _calcStraightBonus(rankGroups[:-numLow])
+    else:
+      # Ace + no low cards
+      phase3 += _calcStraightBonus(rankGroups)
+  else:
+    phase3 += _calcStraightBonus(rankGroups)
+  
+  #!print(f'{phase3 = }')
+  score += phase3
+  
+  #!print(f'{score = }')
+  return score
 
 
 def printStats(name, ctr, bhc, bht):
@@ -379,9 +456,9 @@ def main(args):
   else:
     
     if args.flop == None:
-      print("Do hutchison calc")
-      hutchison(hc)
-    
+      s = hutchison(hc)
+      print("Hutchison score: {}".format(s))
+      print("Approximate win: {:.1f}%".format(s/2.0)) 
     else:
       oh = OmahaHand(hc, bc)
       bhc, bht, bhl = countBetterHands(oh, d.deck, saveHands=args.better_hands)
