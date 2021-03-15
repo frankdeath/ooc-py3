@@ -5,6 +5,7 @@ from collections import Counter
 from itertools import product, combinations, zip_longest, groupby, filterfalse
 from functools import total_ordering
 
+
 class HandRank(IntEnum):
   def __new__(cls, string):
     value = len(cls.__members__)
@@ -26,6 +27,7 @@ class HandRank(IntEnum):
 
 #for hr in HandRank:
 #  print(hr, hr.name, hr.value, hr.string)
+
 
 class Rank(IntEnum):
   def __new__(cls, char):
@@ -52,6 +54,7 @@ class Rank(IntEnum):
 #for r in Rank:
 #  print(r, r.name, r.value, r.char)
 
+
 class Suit(IntEnum):
   def __new__(cls, char):
     value = len(cls.__members__) + 1
@@ -68,6 +71,7 @@ class Suit(IntEnum):
 #print
 #for s in Suit:
 #  print(s, s.name, s.value, s.char)
+
 
 @total_ordering
 class Card:
@@ -87,6 +91,7 @@ class Card:
   def __str__(self):
     return "{}{}".format(self.rank.char, self.suit.char)
 
+
 class Deck:
   def __init__(self):
     self.deck = [Card(r, s) for (r, s) in product(Rank, Suit)]
@@ -102,6 +107,7 @@ class Deck:
     card = self.card_dict[s]
     self.deck.remove(card)
     return card
+
 
 @total_ordering
 class Hand:
@@ -243,6 +249,7 @@ class Hand:
     
     return (hr, hn)
 
+
 @total_ordering
 class OmahaHand:
   '''
@@ -277,13 +284,14 @@ class OmahaHand:
     #  else:
     #    #print(h)
     #    pass
-  
-  
+
+
 def cardsToList(h):
   # This clones the iterator
   args = [iter(h)] * 2
   # Zipping the iterator with its clone takes 2-char slices
   return [''.join(x) for x in zip_longest(*args)]
+
 
 def countBetterHands(oh, deck, saveHands):
   '''
@@ -304,7 +312,8 @@ def countBetterHands(oh, deck, saveHands):
     total += 1
   
   return (bhc, total, sorted(handList, reverse=True))
-    
+
+
 def printStats(name, ctr, bhc, bht):
   total = sum(ctr.values())
   
@@ -321,6 +330,7 @@ def printStats(name, ctr, bhc, bht):
     percent = ctr[r] / total * 100.0
     print("{:<16}{:<16}{:<16.2f}{:<16.2f}{:<16}".format(r.string, ctr[r], odds, percent, bhc[r]))
   print()
+
 
 def main(args):
   try:
@@ -378,11 +388,7 @@ def main(args):
       for n, h in [(len([*g]), k) for k, g in groupby(bhl, lambda x : x.bestHand.name)]:
         print("{:>3} | {:<20}".format(n, h))
       print("{:>3}   {:<20}".format(sum(bhc.values()), "TOTAL"))
-    
-    # When calculating better hands...
-    #for bc in d.deck:
-    #  print(bc)
-    #  print(*filterfalse(lambda x : x == bc, d.deck))
+
 
 if __name__ == '__main__':
   import argparse as ap
@@ -401,4 +407,3 @@ if __name__ == '__main__':
   args = parser.parse_args(sys.argv[1:])
   
   main(args)
-  
