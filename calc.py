@@ -308,6 +308,10 @@ def countBetterHands(oh, deck, saveHands):
   return (bhc, total, sorted(handList, reverse=True))
 
 
+def hutchison(hole):
+  print(hole)
+
+
 def printStats(name, ctr, bhc, bht):
   total = sum(ctr.values())
   
@@ -335,55 +339,61 @@ def main(args):
   except ValueError:
     print("Error: card specified multiple times")
   else:
-    oh = OmahaHand(hc, bc)
-    bhc, bht, bhl = countBetterHands(oh, d.deck, saveHands=args.better_hands)
     
-    if args.turn == None:
-      ### calc turn stats
-      tc = Counter({r : 0 for r in HandRank})
-      
-      for turn in d.deck:
-        th = OmahaHand(hc, bc+[turn,])
-        tc[th.rank] += 1
-      
-      ### calc river stats
-      rc = Counter({r : 0 for r in HandRank})
-      
-      for turn, river in combinations(d.deck, 2):
-        rh = OmahaHand(hc, bc+[turn, river])
-        rc[rh.rank] += 1
-      
-      oh.pprint()
-      printStats("TURN", tc, bhc, bht)
-      printStats("RIVER", rc, bhc, bht)
-    
-    elif args.river == None:
-      ### calc river stats
-      rc = Counter({r : 0 for r in HandRank})
-      
-      for river in d.deck:
-        rh = OmahaHand(hc, bc+[river,])
-        rc[rh.rank] += 1
-      
-      oh.pprint()
-      printStats("RIVER", rc, bhc, bht)
+    if args.flop == None:
+      print("Do hutchison calc")
+      hutchison(hc)
     
     else:
-      ### calc showdown stats
-      sc = Counter({r : 0 for r in HandRank})
-      sc[oh.rank] += 1
+      oh = OmahaHand(hc, bc)
+      bhc, bht, bhl = countBetterHands(oh, d.deck, saveHands=args.better_hands)
       
-      oh.pprint()
-      printStats("SHOWDOWN", sc, bhc, bht)
-    
-    if args.better_hands:
-      print("BETTER HANDS")
-      print()
-      print("{:>3}   {:<20}".format("#", "HAND"))
+      if args.turn == None:
+        ### calc turn stats
+        tc = Counter({r : 0 for r in HandRank})
+        
+        for turn in d.deck:
+          th = OmahaHand(hc, bc+[turn,])
+          tc[th.rank] += 1
+        
+        ### calc river stats
+        rc = Counter({r : 0 for r in HandRank})
+        
+        for turn, river in combinations(d.deck, 2):
+          rh = OmahaHand(hc, bc+[turn, river])
+          rc[rh.rank] += 1
+        
+        oh.pprint()
+        printStats("TURN", tc, bhc, bht)
+        printStats("RIVER", rc, bhc, bht)
       
-      for n, h in [(len([*g]), k) for k, g in groupby(bhl, lambda x : x.bestHand.name)]:
-        print("{:>3} | {:<20}".format(n, h))
-      print("{:>3}   {:<20}".format(sum(bhc.values()), "TOTAL"))
+      elif args.river == None:
+        ### calc river stats
+        rc = Counter({r : 0 for r in HandRank})
+        
+        for river in d.deck:
+          rh = OmahaHand(hc, bc+[river,])
+          rc[rh.rank] += 1
+        
+        oh.pprint()
+        printStats("RIVER", rc, bhc, bht)
+      
+      else:
+        ### calc showdown stats
+        sc = Counter({r : 0 for r in HandRank})
+        sc[oh.rank] += 1
+        
+        oh.pprint()
+        printStats("SHOWDOWN", sc, bhc, bht)
+      
+      if args.better_hands:
+        print("BETTER HANDS")
+        print()
+        print("{:>3}   {:<20}".format("#", "HAND"))
+        
+        for n, h in [(len([*g]), k) for k, g in groupby(bhl, lambda x : x.bestHand.name)]:
+          print("{:>3} | {:<20}".format(n, h))
+        print("{:>3}   {:<20}".format(sum(bhc.values()), "TOTAL"))
 
 
 if __name__ == '__main__':
@@ -393,9 +403,7 @@ if __name__ == '__main__':
   parser = ap.ArgumentParser("calc.py")
   
   parser.add_argument("hole_cards", action="store")
-  #parser.add_argument("flop", nargs='?', action="store")
-  # Require flop until hutchison point calc is implemented
-  parser.add_argument("flop", action="store")
+  parser.add_argument("flop", nargs='?', action="store")
   parser.add_argument("turn", nargs='?', action="store")
   parser.add_argument("river", nargs='?', action="store")
   parser.add_argument("-b", action="store_true", dest="better_hands", help="Show better hands")
