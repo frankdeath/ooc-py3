@@ -117,8 +117,20 @@ class Hand:
   def __gt__(self, other):
     if self.rank == other.rank:
       if self.rank in (HandRank.STRAIGHT, HandRank.STRAIGHT_FLUSH):
-        # Omit the highest card in the straight so that low-A straights are handled properly
-        return self.rankList[1:] > other.rankList[1:]
+        # Use the highest card in the straight for the comparison
+        # 5 is the highest card in the wheel, even though it has an ace
+        
+        if self.rankList[0][1] - self.rankList[1][1] == 9:
+          sRank = self.rankList[1][1]
+        else:
+          sRank = self.rankList[0][1]
+        
+        if other.rankList[0][1] - other.rankList[1][1] == 9:
+          oRank = self.rankList[1][1]
+        else:
+          oRank = self.rankList[0][1]
+        
+        return sRank > oRank
       else:
         return self.rankList > other.rankList
     else:
