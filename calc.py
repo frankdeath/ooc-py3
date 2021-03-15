@@ -271,19 +271,13 @@ class OmahaHand:
   def __repr__(self):
     return "<OmahaHand: {} {}>".format("".join([x.__str__() for x in self.hand]), "".join([x.__str__() for x in self.board]))
   
-  def debugPrint(self):
+  def pprint(self):
     print()
     if self.bestHand.rank == HandRank.ROYAL_FLUSH:
       print("{} | {} - {}".format(Hand.to_string(self.hand), Hand.to_string(self.board), self.bestHand.rank.string))
     else:
       print("{} | {} - {}: {}".format(Hand.to_string(self.hand), Hand.to_string(self.board), self.bestHand.rank.string ,self.bestHand.name))
     print()
-    #for i, h in enumerate(self.handList):
-    #  if i == self.bestHandIdx:
-    #    print("{} *".format(h))
-    #  else:
-    #    #print(h)
-    #    pass
 
 
 def cardsToList(h):
@@ -343,7 +337,6 @@ def main(args):
   else:
     oh = OmahaHand(hc, bc)
     bhc, bht, bhl = countBetterHands(oh, d.deck, saveHands=args.better_hands)
-    oh.debugPrint()
     
     if args.turn == None:
       ### calc turn stats
@@ -360,6 +353,7 @@ def main(args):
         rh = OmahaHand(hc, bc+[turn, river])
         rc[rh.rank] += 1
       
+      oh.pprint()
       printStats("TURN", tc, bhc, bht)
       printStats("RIVER", rc, bhc, bht)
     
@@ -371,6 +365,7 @@ def main(args):
         rh = OmahaHand(hc, bc+[river,])
         rc[rh.rank] += 1
       
+      oh.pprint()
       printStats("RIVER", rc, bhc, bht)
     
     else:
@@ -378,6 +373,7 @@ def main(args):
       sc = Counter({r : 0 for r in HandRank})
       sc[oh.rank] += 1
       
+      oh.pprint()
       printStats("SHOWDOWN", sc, bhc, bht)
     
     if args.better_hands:
