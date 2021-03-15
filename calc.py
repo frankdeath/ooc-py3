@@ -249,6 +249,9 @@ class OmahaHand:
   def __eq__(self, other):
     return self.bestHand.__eq__(other.bestHand)
   
+  def __repr__(self):
+    return "<OmahaHand: {} {}>".format("".join([x.__str__() for x in self.hand]), "".join([x.__str__() for x in self.board]))
+  
   def debugPrint(self):
     print()
     if self.bestHand.rank == HandRank.ROYAL_FLUSH:
