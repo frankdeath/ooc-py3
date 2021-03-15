@@ -309,7 +309,45 @@ def countBetterHands(oh, deck, saveHands):
 
 
 def hutchison(hole):
-  print(hole)
+  hr = sorted(hole, reverse=True)
+  # rankGroups element: ( # of rank, rank )
+  rankGroups = [(len([*g]),k) for k, g in groupby(hr, lambda x: x.rank)]
+  print(rankGroups)
+  numRanks = len(rankGroups)
+  hs = sorted(hole, reverse=True, key=lambda y: (y.suit, y.rank))
+  # suitGroups element: ( [ list of ranks ], suit )
+  suitGroups = [([c.rank for c in g], k) for k, g in groupby(hs, lambda z: z.suit)]
+  print(suitGroups)
+  score = 0
+  
+  # Phase 1 - Contribution from suited cards
+  bonus1 = {Rank.ACE : 8, Rank.KING : 6, Rank.QUEEN : 5, Rank.JACK : 4, Rank.TEN : 3, Rank.NINE : 3, Rank.EIGHT : 2,
+            Rank.SEVEN : 1, Rank.SIX : 1, Rank.FIVE : 1, Rank.FOUR : 1, Rank.THREE : 1, Rank.TWO : 1}
+  penalty1 = 2
+  for s in suitGroups:
+    # If there are at least two cards with the same suit
+    if len(s[0]) > 1:
+      # The bonus is based on the highest rank
+      score += bonus1[s[0][0]]
+      
+      # There is a penalty for more than two cards of the same suit (only applies once)
+      if len(s[0]) > 2:
+        score -= penalty1
+  
+  # Phase 2 - Contribution from pairs
+  bonus2 = {Rank.ACE : 18, Rank.KING : 16, Rank.QUEEN : 14, Rank.JACK : 13, Rank.TEN : 12, Rank.NINE : 10, Rank.EIGHT : 8,
+            Rank.SEVEN : 7, Rank.SIX : 7, Rank.FIVE : 7, Rank.FOUR : 7, Rank.THREE : 7, Rank.TWO : 7}
+  for r in rankGroups:
+    # Bonuses only apply to pairs
+    if r[0] == 2:
+      score += bonus2[r[1]]
+  
+  # Phase 3 - Contribution from straight cards
+  bonus3 = {4 : 25, 3 : 18, 2 : 8}
+  
+  
+  print(score)
+
 
 
 def printStats(name, ctr, bhc, bht):
